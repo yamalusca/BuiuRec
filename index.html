@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Escapa ai Buiu</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+
+  :root {
+    --cor-fundo: #0a0f1c;
+    --cor-principal: #11152a;
+    --cor-secundaria: #1e2238;
+    --cor-destaque: #ff0000;
+    --cor-texto: #e1faff;
+    --cor-botao-hover: #ff0000;
+    --cor-botao-texto-hover: #0a0f1c;
+    --sombra: 0 0 20px rgba(234, 59, 59, 0.5);
+    --fonte-titulo: 'Orbitron', sans-serif;
+    --fonte-texto: 'Segoe UI', sans-serif;
+  }
+
+  body {
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+    font-family: var(--fonte-texto);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    flex-direction: column;
+  }
+#videoFundo {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  min-width: 100%;
+  min-height: 100%;
+  z-index: -1;
+  object-fit: cover;
+}
+
+  .caixa-principal {
+    background-color: var(--cor-principal);
+    width: 100%;
+    max-width: 650px;
+    text-align: center;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: var(--sombra);
+  }
+
+  h1 {
+    color: var(--cor-destaque);
+    font-family: var(--fonte-titulo);
+    font-size: 28px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  button {
+    background-color: var(--cor-secundaria);
+    color: var(--cor-texto);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin: 10px 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+  }
+
+  button:hover {
+    background-color: var(--cor-botao-hover);
+    color: var(--cor-botao-texto-hover);
+    transform: scale(1.05);
+    box-shadow: var(--sombra);
+  }
+
+  .caixa-resultado {
+    margin-top: 25px;
+    font-style: italic;
+    font-size: 16px;
+    padding-top: 15px;
+    border-top: 1px solid var(--cor-destaque);
+    min-height: 60px; /* para não mudar o layout ao trocar texto */
+    white-space: pre-wrap;
+  }
+
+  /* Puzzle styles */
+  #puzzle-container {
+    margin-top: 40px;
+    display: none;
+    user-select: none;
+  }
+  #puzzle {
+    width: 300px;
+    height: 300px;
+    border: 4px solid var(--cor-destaque);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 4px;
+    background-color: var(--cor-principal);
+    border-radius: 12px;
+  }
+  .piece {
+    background-color: var(--cor-secundaria);
+    color: var(--cor-texto);
+    font-size: 2.2rem;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
+    user-select: none;
+  }
+  .piece.empty {
+    background: transparent;
+    box-shadow: none;
+    cursor: default;
+  }
+  #btnChecar {
+    margin-top: 15px;
+    padding: 12px 25px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+  <div class="caixa-principal">
+    <h1>Você decide o futuro da IA</h1>
+    <div class="caixa-perguntas"></div>
+    <div class="caixa-alternativas"></div>
+    <div class="caixa-resultado">
+      <p class="texto-resultado"></p>
+    </div>
+  </div>
+
+  <div id="puzzle-container">
+    <h2>FAÇA O PUZZLE PARA FUGIR</h2>
+    <div id="puzzle"></div>
+    <button id="btnChecar">Checar</button>
+  </div>
+
+<script>
+  const caixaPerguntas = document.querySelector(".caixa-perguntas");
+  const caixaAlternativas = document.querySelector(".caixa-alternativas");
+  const textoResultado = document.querySelector(".texto-resultado");
+  const puzzleContainer = document.getElementById("puzzle-container");
+  const puzzle = document.getElementById("puzzle");
+  const btnChecar = document.getElementById("btnChecar");
+
+  const perguntas = [
+    {
+      enunciado: "Ano: 2025. Você acaba de sair da escola quando escuta sobre uma nova tecnologia chamada IA Generativa. Qual é sua primeira reação?",
+      alternativas: [
+        {
+          texto: "Fico deslumbrado(a) e começo a explorar imediatamente.",
+          afirmacao: "Você mergulhou no mundo da IA, curioso(a) para entender como ela funcionava e como poderia transformar a sociedade."
+        },
+        {
+          texto: "Fico desconfiado(a), parece perigoso.",
+          afirmacao: "Sua desconfiança despertou em você o desejo de entender a fundo os impactos e riscos da tecnologia antes de aceitá-la."
+        }
+      ]
+    },
+    {
+      enunciado: "Meses depois, a escola lança um projeto sobre IA. O que você propõe?",
+      alternativas: [
+        {
+          texto: "Um assistente virtual para idosos com lembretes de remédios.",
+          afirmacao: "Você mostrou como a IA pode ser usada com empatia, ajudando quem mais precisa de apoio tecnológico."
+        },
+        {
+          texto: "Um robô de conversa que combate discursos de ódio online.",
+          afirmacao: "Você usou a tecnologia para defender valores humanos e promover respeito nas redes."
+        }
+      ]
+    },
+    {
+      enunciado: "Seus colegas começam a copiar textos da IA nas tarefas. O que você faz?",
+      alternativas: [
+        {
+          texto: "Sugiro que a escola crie um Código de Ética para o uso da IA.",
+          afirmacao: "Sua ideia foi aceita e você passou a orientar os colegas sobre o uso consciente da tecnologia."
+        },
+        {
+          texto: "Organizo uma roda de conversa sobre ética e criatividade com IA.",
+          afirmacao: "Você criou um espaço seguro para refletir sobre os limites do uso da IA na educação."
+        }
+      ]
+    },
+    {
+      enunciado: "Ano: 2028. Em uma feira de ciências, como você representa o futuro da IA?",
+      alternativas: [
+        {
+          texto: "Desenho humanos e robôs construindo juntos uma cidade do futuro.",
+          afirmacao: "Sua arte inspirou olhares esperançosos sobre a colaboração entre humanos e máquinas."
+        },
+        {
+          texto: "Gero uma imagem com IA mostrando um mundo dividido entre liberdade e controle.",
+          afirmacao: "Sua obra provocou debates profundos sobre os caminhos possíveis da humanidade."
+        }
+      ]
+    },
+    {
+      enunciado: "Ano: 2035. Você fala em um congresso sobre uso responsável da IA. O que defende?",
+      alternativas: [
+        {
+          texto: "A IA deve sempre fortalecer decisões humanas, não substituí-las.",
+          afirmacao: "Você reforçou a importância de manter o controle humano em decisões críticas."
+        },
+        {
+          texto: "A IA pode decidir sim, se for ética e transparente.",
+          afirmacao: "Você ajudou a criar protocolos para auditoria de algoritmos, influenciando leis nacionais."
+        }
+      ]
+    },
+    {
+      enunciado: "Ano: 2049. Você participa da criação de uma IA global. Qual sua principal contribuição?",
+      alternativas: [
+        {
+          texto: "Programar limites éticos para proteger a liberdade individual.",
+          afirmacao: "Sua atuação garantiu que a IA respeitasse os direitos humanos acima de qualquer dado estatístico."
+        },
+        {
+          texto: "Criar um sistema onde a IA aprende com culturas diversas.",
+          afirmacao: "Você tornou a IA mais empática, diversa e representativa do mundo real."
+        }
+      ]
+    }
+  ];
+
+  let perguntaAtual = 0;
+  let historiaFinal = "";
+
+  // Símbolos para criptografar
+  const simbolos = ['@', '#', '!', '$', '%', '&', '*', '?', '+', '='];
+
+  // Função para gerar texto criptografado com tamanho igual ao texto real
+  function geraTextoCriptografado(tamanho) {
+    let texto = "";
+    for(let i = 0; i < tamanho; i++) {
+      texto += simbolos[Math.floor(Math.random() * simbolos.length)];
+    }
+    return texto;
+  }
+
+  // Atualiza o texto criptografado na tela a cada 100ms
+  let intervaloCripto;
+  function iniciaAnimacaoCripto() {
+    if (intervaloCripto) clearInterval(intervaloCripto);
+    intervaloCripto = setInterval(() => {
+      textoResultado.textContent = geraTextoCriptografado(historiaFinal.length);
+    }, 100);
+  }
+
+  // Para a animação e mostra o texto real
+  function revelaTextoReal() {
+    clearInterval(intervaloCripto);
+    textoResultado.textContent = historiaFinal;
+  }
+
+  function mostraPergunta() {
+    if (perguntaAtual >= perguntas.length) {
+      mostraResultado();
+      return;
+    }
+
+    const pergunta = perguntas[perguntaAtual];
+    caixaPerguntas.textContent = pergunta.enunciado;
+    caixaAlternativas.innerHTML = "";
+
+    pergunta.alternativas.forEach(alternativa => {
+      const botao = document.createElement("button");
+      botao.textContent = alternativa.texto;
+      botao.onclick = () => {
+        historiaFinal += alternativa.afirmacao + " ";
+        perguntaAtual++;
+        mostraPergunta();
+      };
+      caixaAlternativas.appendChild(botao);
+    });
+  }
+
+  function mostraResultado() {
+    caixaPerguntas.textContent = "Em 2049, sua jornada com a IA chegou a um ponto de transformação global...";
+    // Ao invés de mostrar o texto real, iniciamos com criptografia
+    textoResultado.textContent = "";
+    caixaAlternativas.innerHTML = "";
+
+    puzzleContainer.style.display = "block";
+
+    // Começa a animação criptografada
+    iniciaAnimacaoCripto();
+
+    // Inicia o puzzle
+    iniciaPuzzle();
+  }
+
+  // Puzzle logic
+
+  let board = [];
+  const size = 3; // 3x3
+
+  function iniciaPuzzle() {
+    // Criar um array ordenado de 0 a 8, onde 0 é o espaço vazio
+    board = [...Array(size * size).keys()];
+
+    // Embaralha o board mas garantindo que seja solucionável
+    do {
+      embaralhaBoard();
+    } while (!puzzleSolucionavel(board));
+
+    desenhaPuzzle();
+  }
+
+  function embaralhaBoard() {
+    for (let i = board.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [board[i], board[j]] = [board[j], board[i]];
+    }
+  }
+
+  function desenhaPuzzle() {
+    puzzle.innerHTML = "";
+    board.forEach((val, idx) => {
+      const div = document.createElement("div");
+      div.classList.add("piece");
+      if (val === 0) {
+        div.classList.add("empty");
+        div.textContent = "";
+      } else {
+        div.textContent = val;
+        div.onclick = () => tentaMover(idx);
+      }
+      puzzle.appendChild(div);
+    });
+  }
+
+  function tentaMover(idx) {
+    const emptyIndex = board.indexOf(0);
+
+    // Checar se idx está ao lado do espaço vazio
+    const podeMover =
+      (emptyIndex - 1 === idx && emptyIndex % size !== 0) || // esquerda
+      (emptyIndex + 1 === idx && (emptyIndex + 1) % size !== 0) || // direita
+      (emptyIndex - size === idx) || // cima
+      (emptyIndex + size === idx); // baixo
+
+    if (podeMover) {
+      [board[emptyIndex], board[idx]] = [board[idx], board[emptyIndex]];
+      desenhaPuzzle();
+    }
+  }
+
+function checaVitoria() {
+  for (let i = 0; i < board.length - 1; i++) {
+    if (board[i] !== i + 1) return false;
+  }
+  return board[board.length - 1] === 0;
+}
+
+
+
+  // Verifica se o puzzle é solucionável
+  function puzzleSolucionavel(arr) {
+    let inversoes = 0;
+    const arrSemZero = arr.filter(x => x !== 0);
+    for (let i = 0; i < arrSemZero.length -1; i++) {
+      for (let j = i+1; j < arrSemZero.length; j++) {
+        if (arrSemZero[i] > arrSemZero[j]) inversoes++;
+      }
+    }
+    return inversoes % 2 === 0;
+  }
+
+  // Evento do botão "Checar"
+  btnChecar.onclick = () => {
+    if (checaVitoria()) {
+      alert("Parabéns! Você completou o puzzle e fugiu!");
+      puzzleContainer.style.display = "none";
+      revelaTextoReal();
+    } else {
+      alert("Puzzle ainda não está completo. Continue tentando!");
+    }
+  };
+
+  document.addEventListener("DOMContentLoaded", mostraPergunta);
+</script>
+
+<video autoplay muted loop id="videoFundo">
+  <source src="fundo.mp4" type="video/mp4">
+  Seu navegador não suporta vídeo em HTML5.
+</video>
+
+</body>
+</html>
